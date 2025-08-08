@@ -109,6 +109,10 @@ public:
     Shape(int x, int y, int width, int height) : GameObject(x, y, width, height), alive(true) {}
 
     virtual void respawn() = 0;
+    virtual void moveDown() {
+    y += 1; // adjust speed as needed
+}
+
 };
 
 class RectangleShape : public Shape {
@@ -251,6 +255,9 @@ int main() {
 
     int highScore = readHighScore();
     GameState state = MENU;
+    
+    int lives = 5;
+
 
     while (state != EXIT) {
         if (state == MENU) {
@@ -280,6 +287,10 @@ int main() {
                 char highScoreText[30];
                 sprintf(highScoreText, "High Score: %d", highScore);
                 outtextxy(10, 30, highScoreText);
+                char livesText[20];
+				sprintf(livesText, "Lives: %d", lives);
+				outtextxy(10, 50, livesText);
+
 
                 if (kbhit()) {
                     char ch = getch();
@@ -307,10 +318,32 @@ int main() {
                         shapes[i]->respawn(); 
                         score += SCORE_INCREMENT;
                     }
+                    if (shapes[i]->alive) {
+				        shapes[i]->moveDown();
+				
+				        // If shape reaches bottom
+				        if (shapes[i]->y + shapes[i]->height >= HEIGHT) {
+				            shapes[i]->alive = false;
+				            shapes[i]->respawn();
+				            lives--;
+				            if (lives <= 0) {
+				                game_over = true;
+				            }
+				        }
+				    }
                 }
 
                 delay(30);
             }
+			            if (lives <= 0) {
+			    cleardevice();
+			    setcolor(RED);
+			    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+			    outtextxy(WIDTH / 2 - 100, HEIGHT / 2, "GAME OVER!");
+			    outtextxy(WIDTH / 2 - 100, HEIGHT / 2 + 30, "Press any key to return...");
+			    getch();
+			}
+
 
             
             if (score > highScore) {
@@ -322,7 +355,7 @@ int main() {
             for (int i = 0; i < 3; ++i) {
                 delete shapes[i];
             }
-
+			
             state = MENU;
         }
     }
